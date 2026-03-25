@@ -13,7 +13,6 @@ export default function LoginPage() {
 
   useEffect(() => {
     setMounted(true)
-    // Si ya hay sesión activa, redirige al dashboard
     const user = localStorage.getItem('user')
     if (user) router.push('/dashboard')
   }, [router])
@@ -31,53 +30,50 @@ export default function LoginPage() {
     }
   }
 
-  // Espera a que cargue en el cliente para evitar hydration error
   if (!mounted) return null
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl border border-gray-200 p-8 w-full max-w-sm">
-        <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-3 text-2xl">
-            🏠
-          </div>
-          <h1 className="text-xl font-medium text-gray-900">Familia Mendoza</h1>
-          <p className="text-sm text-gray-500 mt-1">Gestión del hogar</p>
+    <main className="min-h-screen flex items-center justify-center p-4" style={{background:'#0f0f0f'}}>
+      <div style={{background:'#1a1a1a',border:'0.5px solid #2e2e2e',borderRadius:'20px',padding:'32px 24px',width:'100%',maxWidth:'360px'}}>
+        <div style={{textAlign:'center',marginBottom:'32px'}}>
+          <div style={{width:'48px',height:'48px',background:'#1f3a2a',borderRadius:'14px',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 12px',fontSize:'22px'}}>🏠</div>
+          <h1 style={{color:'#fff',fontSize:'20px',fontWeight:500,margin:'0 0 4px'}}>Familia Mendoza</h1>
+          <p style={{color:'#555',fontSize:'13px',margin:0}}>Gestión del hogar</p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="text-sm text-gray-600 mb-1 block">Usuario</label>
+        <form onSubmit={handleLogin}>
+          <div style={{marginBottom:'12px'}}>
+            <label style={{color:'#666',fontSize:'12px',display:'block',marginBottom:'6px'}}>Usuario</label>
             <input
               type="text"
               value={username}
               onChange={e => setUsername(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:border-green-500"
+              style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'10px',padding:'10px 12px',fontSize:'14px',color:'#fff',outline:'none',boxSizing:'border-box'}}
               placeholder="tunombre"
               autoComplete="off"
               required
             />
           </div>
-          <div>
-            <label className="text-sm text-gray-600 mb-1 block">Contraseña</label>
+          <div style={{marginBottom:'16px'}}>
+            <label style={{color:'#666',fontSize:'12px',display:'block',marginBottom:'6px'}}>Contraseña</label>
             <input
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:border-green-500"
+              style={{width:'100%',background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'10px',padding:'10px 12px',fontSize:'14px',color:'#fff',outline:'none',boxSizing:'border-box'}}
               placeholder="••••••••"
               required
             />
           </div>
 
           {error && (
-            <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>
+            <p style={{color:'#f87171',background:'#2a0e0e',borderRadius:'8px',padding:'10px 12px',fontSize:'13px',marginBottom:'12px'}}>{error}</p>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-green-700 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-green-800 transition-colors disabled:opacity-50"
+            style={{width:'100%',background: loading ? '#1f3a2a' : '#166534',color:'#4ade80',border:'none',borderRadius:'10px',padding:'12px',fontSize:'14px',fontWeight:500,cursor: loading ? 'not-allowed' : 'pointer',opacity: loading ? 0.6 : 1}}
           >
             {loading ? 'Ingresando...' : 'Ingresar'}
           </button>

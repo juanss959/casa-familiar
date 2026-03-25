@@ -28,11 +28,7 @@ export default function CasaPage() {
   }, [router])
 
   async function cargarDatos() {
-    const { data: aptos } = await supabase
-      .from('apartamentos')
-      .select('*')
-      .order('piso')
-
+    const { data: aptos } = await supabase.from('apartamentos').select('*').order('piso')
     if (aptos) {
       setApartamentos(aptos)
       await calcularEstados(aptos)
@@ -49,26 +45,19 @@ export default function CasaPage() {
     for (const apto of aptos) {
       if (apto.es_propio) continue
       const { data: pagos } = await supabase
-        .from('pagos')
-        .select('*')
+        .from('pagos').select('*')
         .eq('apartamento_id', apto.id)
         .eq('estado', 'pendiente')
 
-      if (!pagos || pagos.length === 0) {
-        estadosPisos[apto.piso] = 'al_dia'
-        continue
-      }
+      if (!pagos || pagos.length === 0) { estadosPisos[apto.piso] = 'al_dia'; continue }
 
       for (const pago of pagos) {
         const vence = new Date(pago.fecha_vencimiento)
-        if (vence < hoy) {
-          estadosPisos[apto.piso] = 'vencido'
-        } else if (vence.toDateString() === manana.toDateString()) {
-          if (estadosPisos[apto.piso] !== 'vencido')
-            estadosPisos[apto.piso] = 'por_vencer'
+        if (vence < hoy) estadosPisos[apto.piso] = 'vencido'
+        else if (vence.toDateString() === manana.toDateString()) {
+          if (estadosPisos[apto.piso] !== 'vencido') estadosPisos[apto.piso] = 'por_vencer'
         } else {
-          if (!estadosPisos[apto.piso])
-            estadosPisos[apto.piso] = 'al_dia'
+          if (!estadosPisos[apto.piso]) estadosPisos[apto.piso] = 'al_dia'
         }
       }
     }
@@ -78,47 +67,48 @@ export default function CasaPage() {
   const pisos = [1, 2, 3, 4]
 
   function getBadge(piso: number, esPropio: boolean) {
-    if (esPropio) return <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Nuestro</span>
+    if (esPropio) return <span style={{background:'#222',color:'#555',fontSize:'10px',padding:'2px 8px',borderRadius:'6px'}}>Nuestro</span>
     const e = estados[piso]
-    if (e === 'vencido') return <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-800">Vencido</span>
-    if (e === 'por_vencer') return <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Vence mañana</span>
-    if (e === 'tarde') return <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-800">Pagó tarde</span>
-    return <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-800">Al día</span>
+    if (e === 'vencido') return <span style={{background:'#2a0e0e',color:'#f87171',fontSize:'10px',padding:'2px 8px',borderRadius:'6px'}}>Vencido</span>
+    if (e === 'por_vencer') return <span style={{background:'#2a2200',color:'#facc15',fontSize:'10px',padding:'2px 8px',borderRadius:'6px'}}>Vence mañana</span>
+    if (e === 'tarde') return <span style={{background:'#2a0e0e',color:'#f87171',fontSize:'10px',padding:'2px 8px',borderRadius:'6px'}}>Pagó tarde</span>
+    return <span style={{background:'#1f3a2a',color:'#4ade80',fontSize:'10px',padding:'2px 8px',borderRadius:'6px'}}>Al día</span>
   }
 
   if (loading) return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <p className="text-gray-400 text-sm">Cargando...</p>
+    <main className="min-h-screen flex items-center justify-center" style={{background:'#0f0f0f'}}>
+      <p style={{color:'#555',fontSize:'14px'}}>Cargando...</p>
     </main>
   )
 
   return (
-    <main className="min-h-screen bg-gray-50 p-4">
+    <main className="min-h-screen p-4" style={{background:'#0f0f0f'}}>
       <div className="max-w-sm mx-auto">
-        <div className="flex items-center gap-3 mb-6 mt-4">
-          <button onClick={() => router.push('/dashboard')} className="text-sm text-gray-400 hover:text-gray-600">← Inicio</button>
-          <h1 className="text-xl font-medium text-gray-900">Casa</h1>
+        <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'24px',marginTop:'16px'}}>
+          <button onClick={() => router.push('/dashboard')} style={{color:'#555',fontSize:'13px',background:'none',border:'none',cursor:'pointer',padding:0}}>← Inicio</button>
+          <h1 style={{color:'#fff',fontSize:'20px',fontWeight:500,margin:0}}>Casa</h1>
         </div>
 
-        <div className="bg-green-50 rounded-xl px-3 py-2 flex items-center gap-2 mb-4">
-          <span className="text-green-700 text-xs">📱 Alertas activas — 1 día antes de cada vencimiento</span>
+        <div style={{background:'#1a2a1a',border:'0.5px solid #2e3e2e',borderRadius:'12px',padding:'10px 14px',display:'flex',alignItems:'center',gap:'8px',marginBottom:'16px'}}>
+          <span style={{fontSize:'14px'}}>📱</span>
+          <p style={{color:'#4ade80',fontSize:'12px',margin:0}}>Alertas activas — 1 día antes del vencimiento</p>
         </div>
 
-        <div className="space-y-3">
+        <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
           {pisos.map(piso => {
             const aptosDelPiso = apartamentos.filter(a => a.piso === piso)
             const esPropio = aptosDelPiso.some(a => a.es_propio)
             return (
-              <div key={piso} className="bg-white border border-gray-200 rounded-2xl p-4">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-medium text-gray-900 text-sm">Piso {piso}</span>
+              <div key={piso} style={{background:'#1a1a1a',border:'0.5px solid #2e2e2e',borderRadius:'16px',padding:'16px'}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
+                  <span style={{color:'#fff',fontSize:'14px',fontWeight:500}}>Piso {piso}</span>
                   {getBadge(piso, esPropio)}
                 </div>
                 {aptosDelPiso.filter(a => !a.es_propio).map(apto => (
                   <Link key={apto.id} href={`/casa/apto/${apto.id}`}>
-                    <div className="flex justify-between items-center py-2 border-t border-gray-100 hover:bg-gray-50 cursor-pointer rounded px-1">
-                      <span className="text-sm text-gray-600">{apto.nombre}</span>
-                      <span className="text-xs text-green-700">Ver →</span>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 8px',borderTop:'0.5px solid #222',cursor:'pointer'}}>
+                      <span style={{color:'#aaa',fontSize:'13px'}}>{apto.nombre}</span>
+                      <span style={{color:'#4ade80',fontSize:'12px'}}>Ver →</span>
                     </div>
                   </Link>
                 ))}
