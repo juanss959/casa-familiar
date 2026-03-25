@@ -10,7 +10,6 @@ type Pago = {
   apartamento_id: string
   fecha_vencimiento: string
   estado: string
-  fecha_pago: string | null
 }
 
 type Apartamento = {
@@ -99,6 +98,7 @@ export default function Dashboard() {
 
         <div style={{background:'#1a1a1a',border:'0.5px solid #2e2e2e',borderRadius:'16px',padding:'16px'}}>
           <p style={{color:'#555',fontSize:'11px',margin:'0 0 12px',letterSpacing:'0.06em',textTransform:'uppercase'}}>Arriendos — este mes</p>
+
           <div style={{display:'flex',flexDirection:'column',gap:'8px',marginBottom:'16px'}}>
             {aptosArriendados.map(apto => {
               const estado = getEstadoApto(apto)
@@ -122,6 +122,7 @@ export default function Dashboard() {
               )
             })}
           </div>
+
           <div style={{borderTop:'0.5px solid #2e2e2e',paddingTop:'12px',display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'8px'}}>
             <div><p style={{color:'#4ade80',fontSize:'18px',fontWeight:500,margin:'0 0 2px'}}>{alDia}</p><p style={{color:'#555',fontSize:'11px',margin:0}}>Al día</p></div>
             <div><p style={{color:'#facc15',fontSize:'18px',fontWeight:500,margin:'0 0 2px'}}>{porVencer}</p><p style={{color:'#555',fontSize:'11px',margin:0}}>Por vencer</p></div>
