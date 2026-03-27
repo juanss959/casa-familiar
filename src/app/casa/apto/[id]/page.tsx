@@ -38,6 +38,13 @@ export default function AptoPage() {
   const [tipoPago, setTipoPago] = useState<'arriendo'|'luz'|'agua'|'gas'>('luz')
   const [fechaVencimiento, setFechaVencimiento] = useState('')
 
+  // Modal eliminar historial
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [pagoAEliminar, setPagoAEliminar] = useState<Pago|null>(null)
+  const [pinInput, setPinInput] = useState('')
+  const [pinError, setPinError] = useState('')
+  const PIN_SECRETO = '1070'
+
   const esPisoFamiliar = apto?.piso === 3
 
   useEffect(() => {
@@ -78,6 +85,26 @@ export default function AptoPage() {
 
   async function eliminarNota(notaId: string) {
     await supabase.from('notas').delete().eq('id', notaId)
+    cargarDatos()
+  }
+
+  function solicitarEliminarHistorial(pago: Pago) {
+    setPagoAEliminar(pago)
+    setPinInput('')
+    setPinError('')
+    setShowDeleteModal(true)
+  }
+
+  async function confirmarEliminarHistorial() {
+    if (pinInput !== PIN_SECRETO) {
+      setPinError('PIN incorrecto. Intenta de nuevo.')
+      return
+    }
+    if (!pagoAEliminar) return
+    await supabase.from('pagos').delete().eq('id', pagoAEliminar.id)
+    setShowDeleteModal(false)
+    setPagoAEliminar(null)
+    setPinInput('')
     cargarDatos()
   }
 
@@ -190,10 +217,16 @@ export default function AptoPage() {
                   {pago.fecha_pago ? `Pagó el ${new Date(pago.fecha_pago).toLocaleDateString('es-CO')}` : `Venció: ${new Date(pago.fecha_vencimiento).toLocaleDateString('es-CO')}`}
                 </p>
               </div>
-              {pago.estado==='pagado'
-                ? <span style={{background:'#1f3a2a',color:'#4ade80',fontSize:'11px',padding:'3px 10px',borderRadius:'7px'}}>A tiempo ✓</span>
-                : <span style={{background:'#2a0e0e',color:'#f87171',fontSize:'11px',padding:'3px 10px',borderRadius:'7px'}}>Tarde ✗</span>
-              }
+              <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                {pago.estado==='pagado'
+                  ? <span style={{background:'#1f3a2a',color:'#4ade80',fontSize:'11px',padding:'3px 10px',borderRadius:'7px'}}>A tiempo ✓</span>
+                  : <span style={{background:'#2a0e0e',color:'#f87171',fontSize:'11px',padding:'3px 10px',borderRadius:'7px'}}>Tarde ✗</span>
+                }
+                <button onClick={() => solicitarEliminarHistorial(pago)}
+                  style={{background:'#2a0e0e',border:'none',borderRadius:'7px',width:'28px',height:'28px',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',flexShrink:0}}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -220,7 +253,7 @@ export default function AptoPage() {
         ))}
       </div>
 
-      {/* MODAL */}
+      {/* MODAL AGREGAR PAGO */}
       {showModal && (
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',display:'flex',alignItems:'center',justifyContent:'center',padding:'16px',zIndex:50}}>
           <div style={{background:'#1a1a1a',border:'0.5px solid #2e2e2e',borderRadius:'20px',padding:'24px',width:'100%',maxWidth:'360px'}}>
@@ -248,6 +281,45 @@ export default function AptoPage() {
               <button onClick={agregarPago}
                 style={{flex:1,background:'#166534',border:'none',borderRadius:'10px',padding:'11px',color:'#4ade80',fontSize:'13px',fontWeight:500,cursor:'pointer'}}>
                 Guardar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL ELIMINAR HISTORIAL CON PIN */}
+      {showDeleteModal && pagoAEliminar && (
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',display:'flex',alignItems:'center',justifyContent:'center',padding:'16px',zIndex:50}}>
+          <div style={{background:'#1a1a1a',border:'0.5px solid #3a1010',borderRadius:'20px',padding:'24px',width:'100%',maxWidth:'360px'}}>
+            <div style={{textAlign:'center',marginBottom:'20px'}}>
+              <div style={{width:'44px',height:'44px',background:'#2a0e0e',borderRadius:'12px',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 12px'}}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              </div>
+              <h2 style={{color:'#fff',fontSize:'16px',fontWeight:500,margin:'0 0 6px'}}>Eliminar registro</h2>
+              <p style={{color:'#666',fontSize:'13px',margin:0}}>
+                {getTipoEmoji(pagoAEliminar.tipo)} {pagoAEliminar.tipo} — {new Date(pagoAEliminar.fecha_vencimiento).toLocaleDateString('es-CO',{month:'long',year:'numeric'})}
+              </p>
+            </div>
+            <div style={{marginBottom:'16px'}}>
+              <label style={{color:'#666',fontSize:'12px',display:'block',marginBottom:'6px'}}>Ingresa el PIN de seguridad</label>
+              <input
+                type="password"
+                value={pinInput}
+                onChange={e => { setPinInput(e.target.value); setPinError('') }}
+                placeholder="••••"
+                maxLength={10}
+                style={{width:'100%',background:'#111',border:`0.5px solid ${pinError ? '#f87171' : '#2e2e2e'}`,borderRadius:'10px',padding:'10px 12px',fontSize:'16px',color:'#fff',outline:'none',boxSizing:'border-box',textAlign:'center',letterSpacing:'0.2em'}}
+              />
+              {pinError && <p style={{color:'#f87171',fontSize:'12px',margin:'6px 0 0',textAlign:'center'}}>{pinError}</p>}
+            </div>
+            <div style={{display:'flex',gap:'8px'}}>
+              <button onClick={() => { setShowDeleteModal(false); setPinInput(''); setPinError('') }}
+                style={{flex:1,background:'#111',border:'0.5px solid #2e2e2e',borderRadius:'10px',padding:'11px',color:'#888',fontSize:'13px',cursor:'pointer'}}>
+                Cancelar
+              </button>
+              <button onClick={confirmarEliminarHistorial}
+                style={{flex:1,background:'#2a0e0e',border:'none',borderRadius:'10px',padding:'11px',color:'#f87171',fontSize:'13px',fontWeight:500,cursor:'pointer'}}>
+                Eliminar
               </button>
             </div>
           </div>
